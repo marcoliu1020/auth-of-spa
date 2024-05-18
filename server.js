@@ -8,6 +8,7 @@ import base64url from "base64url";
 import SimpleWebAuthnServer from '@simplewebauthn/server';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+console.log('__dirname: ', __dirname);
 
 const app = express()
 app.use(express.json())
