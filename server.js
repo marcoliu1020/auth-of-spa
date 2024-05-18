@@ -32,6 +32,41 @@ app.use(
 );
 
 // ADD HERE THE REST OF THE ENDPOINTS
+app.post("/auth/login", (req, res) => {
+  const user = findUser(req.body.email);
+
+  if (!user) {
+    res.send({ ok: false, message: "Credentials are wrong." });
+    return;
+  }
+
+  // check password
+  const isValid = bcrypt.compareSync(req.body.password, user.password);
+  if (isValid) res.send({ ok: true, user: user });
+  else res.send({ ok: false, message: "Credentials are wrong." });
+});
+
+app.post("/auth/register", (req, res) => {
+  // TODO: ADD VALIDATION
+
+  const user = findUser(req.body.email);
+  if (user) {
+    res.send({ ok: false, message: "User already exists" });
+    return;
+  }
+
+  // register user
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(req.body.password, salt);
+  const nextUser = {
+    name: req.body.name,
+    email: req.body.email,
+    password: hashedPassword,
+  };
+  db.data.users.push(nextUser);
+  db.write();
+  res.send({ ok: true });
+});
 
 app.get("*", (req, res) => {
   res.sendFile(__dirname + "public/index.html");
@@ -40,3 +75,8 @@ app.get("*", (req, res) => {
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
+
+function findUser(email) {
+  const user = db.data.users.find((u) => u.email === email);
+  return user;
+}
